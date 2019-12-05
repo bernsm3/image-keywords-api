@@ -36,7 +36,7 @@ All situations that could use a `list(SomeObject)` are replaced with `dict{SomeO
 
 
 ### Output format
-Shown are JSON objects returned by endpoints. They will appear with "KeywordObject" replaced by its representation and so on so that the user does not have to deal with database semantics; they are shown compressed here for ease of explanation.
+Shown are JSON objects returned by endpoints. They will appear with SomeObject replaced by its representation so that the user does not have to deal with database semantics; they are shown compressed here for ease of explanation.
 
 #### Keyword class
 ```
@@ -59,7 +59,6 @@ Shown are JSON objects returned by endpoints. They will appear with "KeywordObje
 ```
 {
     "date_added": "Tue, 03 Dec 2019 19:10:37 GMT",
-    "deprecated": false,
     "keywords": {
         KeywordObject.name : KeywordObject
     },
@@ -81,10 +80,82 @@ Shown are JSON objects returned by endpoints. They will appear with "KeywordObje
 ```
 
 ### API endpoints
+Currently there is no user authentication and minimal error handling; any invalid requests result in undefined behavior.
+
+#### Image API
+```
+GET /images/
+{ 
+      id: {
+            Category.name: KeywordObject
+      }
+}
+
+
+GET /images/<string:id>
+id: {
+      Category.name: KeywordObject
+}
+
+GET /history/images/
+[ ImageObject ]
+
+GET /history/images/<string:id>
+ImageObject
+
+POST /images/<string:id> { "category":cat_name, "keyword":kw_name }
+```
+Updates the given image's `cat_name` keyword to `kw_name`. Generates a `Record`.
+```
+
+DELETE /images/<string:id> { "category":cat_name }
+```
+Sets the keyword for the given image and category to `None`.
+```
+
+PUT /images/<string:id> { cat_name:kw_name }
+```
+Creates a new image with unique ID `id` associated with the given keywords.
+
+#### Keyword API
+All requests besides `GET` should be restricted to the `restricted_users` usergroup (not yet implemented).
+```
+GET /keywords/
+[ Category.name ]
+
+GET /keywords/<string:cat_name>
+[ Keyword.name ]
+
+GET /history/keywords/<string:cat_name>
+{ Keyword.name:Keyword }
+
+GET '/history/keywords/<string:cat_name>/<string:kw_name>'
+Keyword
+
+PUT /keywords/<string:cat_name>
+```
+Creates an empty category with the given `cat_name`. Warning: expensive; iterates through all images. Should be very rare.
+```
+
+PUT /keywords/<string:cat_name>/<string:kw_name>
+```
+Creates a keyword `kw_name` in the category `cat_name`.
+
+```
+
+DELETE /keywords/<string:cat_name>
+```
+Warning: expensive (iterates over images); irreversible (hard-deletes associated histories). Should be very rare.
+```
+
+DELETE /keywords/<string:cat_name>/<string:kw_name>
+```
+Soft-deletes the given keyword. Cheap and reversible.
 
 ### TODO
-*  Error checking
-*  Get complete coverage on test suite, maybe use pytest
+*  User authentication
+*  Error handling
+*  Get a real test suite, maybe use pytest
 *  Docstrings
 *  Linting
 *  Build system
